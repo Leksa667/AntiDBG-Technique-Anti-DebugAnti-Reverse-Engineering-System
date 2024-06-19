@@ -28,13 +28,18 @@ Preventing debuggers from attaching to the process.
 Regular checks to ensure no unauthorized attachments.
 
 Usage:
+
 To use the techniques demonstrated in this repository, compile the source code using a C++ compiler.
 
 Goals:
+
 To educate and demonstrate various methods of protecting software from unauthorized analysis and manipulation.
 To provide a resource for developers looking to implement advanced security techniques in their own projects.
 To challenge security enthusiasts to bypass the implemented protections and reach the end of the program.
 
 Contribution:
+
 Thanks to HackOvert for the base of this repos, you can find the base here : https://github.com/HackOvert/AntiDBG
+
+
 Contributions to improve or add new techniques are welcome. Please feel free to fork the repository and submit pull requests.
