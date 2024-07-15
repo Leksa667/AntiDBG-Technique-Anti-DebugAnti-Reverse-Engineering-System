@@ -1,5 +1,7 @@
 Don't hesitate to give a star if you like my work ! ⭐️ 
 
+
+
 Welcome to the Anti-Debugging, Anti-Reverse Engineering, and Anti-Dumping Techniques repository. This project is designed to demonstrate and implement a variety of advanced security techniques aimed at preventing debugging, reverse engineering, memory dumping, and unauthorized process attachment. The ultimate goal is to reach the end of the program without being detected or caught by these security mechanisms.
 
 Anti-Debugging Techniques:
