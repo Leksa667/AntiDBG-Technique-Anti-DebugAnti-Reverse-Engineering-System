@@ -16,6 +16,8 @@
 #include <random>
 #include <conio.h>
 
+#include "xrt.hpp"
+
 enum DBG_CATCH
 {
 	DBG_NONE = 0x0000,

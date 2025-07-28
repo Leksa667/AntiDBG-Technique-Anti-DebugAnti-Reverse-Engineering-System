@@ -148,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AntiDBG.h" />
+    <ClInclude Include="xrt.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AntiDBG.asm">

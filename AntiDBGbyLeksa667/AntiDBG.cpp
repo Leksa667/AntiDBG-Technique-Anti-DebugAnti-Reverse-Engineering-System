@@ -5,8 +5,8 @@
 void DBG_MSG(WORD dbg_code, const char* message)
 {
 #ifdef SHOW_DEBUG_MESSAGES
-    printf("[MSG-0x%X]: %s\n", dbg_code, message);
-    MessageBoxA(NULL, message, "GAME OVER!", 0);
+    printf(XorString("[MSG-0x%X]: %s\n"), dbg_code, message);
+    MessageBoxA(NULL, message, XorString("GAME OVER!"), 0);
 #endif
 }
 #ifdef _WIN32
@@ -20,13 +20,13 @@ void NTAPI TLSCallback(PVOID DllHandle, DWORD Reason, PVOID Reserved)
         adbg_CheckDebugRegisters();
         if (IsDebuggerPresent())
         {
-            DBG_MSG(DBG_TLS_CALLBACK, "Caught by TLS Callback!");
+            DBG_MSG(DBG_TLS_CALLBACK, XorString("Caught by TLS Callback!"));
             exit(DBG_TLS_CALLBACK);
         }
     }
 }
-#pragma comment(linker, "/INCLUDE:_tls_used")
-#pragma const_seg(".CRT$XLB")
+#pragma comment(linker, XorString("/INCLUDE:_tls_used"))
+#pragma const_seg(XorString(".CRT$XLB"))
 EXTERN_C const PIMAGE_TLS_CALLBACK _tls_callback = TLSCallback;
 #pragma const_seg()
 #endif
@@ -44,7 +44,7 @@ void AdvancedTimingCheck()
 
     if (timeTaken > 0.001)
     {
-        DBG_MSG(DBG_ADVANCED_TIMING_CHECK, "Advanced timing check detected debugger!");
+        DBG_MSG(DBG_ADVANCED_TIMING_CHECK, XorString("Advanced timing check detected debugger!"));
         exit(DBG_ADVANCED_TIMING_CHECK);
     }
 }
@@ -55,7 +55,7 @@ void adbg_NtCloseCheck(void)
     NTSTATUS status;
 
     typedef NTSTATUS(WINAPI* pNtClose)(HANDLE);
-    pNtClose NtClose = (pNtClose)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtClose");
+    pNtClose NtClose = (pNtClose)GetProcAddress(GetModuleHandleA(XorString("ntdll.dll")), XorString("NtClose"));
 
     if (NtClose)
     {
@@ -68,7 +68,7 @@ void adbg_NtCloseCheck(void)
 
     if (found)
     {
-        DBG_MSG(DBG_NTCLOSECHECK, "Caught by NtCloseCheck!");
+        DBG_MSG(DBG_NTCLOSECHECK, XorString("Caught by NtCloseCheck!"));
         exit(DBG_NTCLOSECHECK);
     }
 }
@@ -88,7 +88,7 @@ void adbg_CheckDebugRegisters(void)
     }
     if (found)
     {
-        DBG_MSG(DBG_CHECKDEBUGREGISTERS, "Caught by CheckDebugRegisters!");
+        DBG_MSG(DBG_CHECKDEBUGREGISTERS, XorString("Caught by CheckDebugRegisters!"));
         exit(DBG_CHECKDEBUGREGISTERS);
     }
 }
@@ -96,7 +96,7 @@ void adbg_OutputDebugStringCheck(void)
 {
     BOOL found = FALSE;
     SetLastError(0);
-    OutputDebugStringA("Anti-Debugging Check");
+    OutputDebugStringA(XorString("Anti-Debugging Check"));
     if (GetLastError() != 0)
     {
         found = TRUE;
@@ -104,7 +104,7 @@ void adbg_OutputDebugStringCheck(void)
 
     if (found)
     {
-        DBG_MSG(DBG_STRCHECKS, "Caught by OutputDebugStringCheck!");
+        DBG_MSG(DBG_STRCHECKS, XorString("Caught by OutputDebugStringCheck!"));
         exit(DBG_STRCHECKS);
     }
 }
@@ -114,13 +114,13 @@ void adbg_ProcessDebugFlags(void)
     DWORD debugFlags = 0;
     ULONG returnLength = 0;
     typedef NTSTATUS(WINAPI* pNtQueryInformationProcess)(HANDLE, UINT, PVOID, ULONG, PULONG);
-    HMODULE hNtdll = LoadLibraryA("ntdll.dll");
+    HMODULE hNtdll = LoadLibraryA(XorString("ntdll.dll"));
     if (hNtdll == NULL)
     {
         return;
     }
     pNtQueryInformationProcess NtQueryInformationProcess =
-        (pNtQueryInformationProcess)GetProcAddress(hNtdll, "NtQueryInformationProcess");
+        (pNtQueryInformationProcess)GetProcAddress(hNtdll, XorString("NtQueryInformationProcess"));
     if (NtQueryInformationProcess == NULL)
     {
         return;
@@ -128,13 +128,13 @@ void adbg_ProcessDebugFlags(void)
     NTSTATUS status = NtQueryInformationProcess(hProcess, 0x1F, &debugFlags, sizeof(debugFlags), &returnLength);
     if (status == 0x00000000 && debugFlags == 0)
     {
-        DBG_MSG(DBG_PROCESSDEBUGFLAGS, "Caught by ProcessDebugFlags check!");
+        DBG_MSG(DBG_PROCESSDEBUGFLAGS, XorString("Caught by ProcessDebugFlags check!"));
         exit(DBG_PROCESSDEBUGFLAGS);
     }
 }
 LONG WINAPI CustomUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 {
-    DBG_MSG(DBG_UNHANDLEDEXCEPTIONFILTER, "Caught by Unhandled Exception Filter!");
+    DBG_MSG(DBG_UNHANDLEDEXCEPTIONFILTER, XorString("Caught by Unhandled Exception Filter!"));
     exit(DBG_UNHANDLEDEXCEPTIONFILTER);
     return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -155,7 +155,7 @@ void adbg_SelfModifyingCode(void)
     void* exec = VirtualAlloc(NULL, sizeof(code), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (exec == NULL)
     {
-        DBG_MSG(DBG_SELFMODIFYINGCODE, "VirtualAlloc failed!");
+        DBG_MSG(DBG_SELFMODIFYINGCODE, XorString("VirtualAlloc failed!"));
         exit(DBG_SELFMODIFYINGCODE);
     }
     memcpy(exec, code, sizeof(code));
@@ -172,7 +172,7 @@ void adbg_SelfModifyingCode(void)
     VirtualFree(exec, 0, MEM_RELEASE);
     if (result == 1)
     {
-        DBG_MSG(DBG_SELFMODIFYINGCODE, "Caught by Self-Modifying Code check!");
+        DBG_MSG(DBG_SELFMODIFYINGCODE, XorString("Caught by Self-Modifying Code check!"));
         exit(DBG_SELFMODIFYINGCODE);
     }
 }
@@ -196,7 +196,7 @@ DWORD WINAPI HiddenThreadFunction(LPVOID lpParam)
         LONGLONG elapsed = end.QuadPart - start.QuadPart;
         if (elapsed > freq.QuadPart / 100)
         {
-            DBG_MSG(DBG_NONE, "Caught by Hidden Thread timing check!");
+            DBG_MSG(DBG_NONE, XorString("Caught by Hidden Thread timing check!"));
             exit(DBG_NONE);
         }
         Sleep(500);
@@ -217,7 +217,7 @@ void adbg_AntiRe(void)
     void* exec = VirtualAlloc(NULL, sizeof(codeBlock), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (exec == NULL)
     {
-        DBG_MSG(DBG_COMPLEXANTIREVERSING, "VirtualAlloc failed!");
+        DBG_MSG(DBG_COMPLEXANTIREVERSING, XorString("VirtualAlloc failed!"));
         exit(DBG_COMPLEXANTIREVERSING);
     }
     memcpy(exec, codeBlock, sizeof(codeBlock));
@@ -227,7 +227,7 @@ void adbg_AntiRe(void)
     VirtualFree(exec, 0, MEM_RELEASE);
     if (result != 1)
     {
-        DBG_MSG(DBG_COMPLEXANTIREVERSING, "Caught by Complex Anti-Reversing check!");
+        DBG_MSG(DBG_COMPLEXANTIREVERSING, XorString("Caught by Complex Anti-Reversing check!"));
         exit(DBG_COMPLEXANTIREVERSING);
     }
 }
@@ -250,7 +250,7 @@ void adbg_BeingDebuggedPEB(void)
 
     if (found)
     {
-        DBG_MSG(DBG_BEINGEBUGGEDPEB, "Caught by BeingDebugged PEB check!");
+        DBG_MSG(DBG_BEINGEBUGGEDPEB, XorString("Caught by BeingDebugged PEB check!"));
         exit(DBG_BEINGEBUGGEDPEB);
     }
 }
@@ -264,7 +264,7 @@ void adbg_CheckRemoteDebuggerPresent(void)
 
     if (found)
     {
-        DBG_MSG(DBG_CHECKREMOTEDEBUGGERPRESENT, "Caught by CheckRemoteDebuggerPresent!");
+        DBG_MSG(DBG_CHECKREMOTEDEBUGGERPRESENT, XorString("Caught by CheckRemoteDebuggerPresent!"));
         exit(DBG_CHECKREMOTEDEBUGGERPRESENT);
     }
 }
@@ -272,8 +272,8 @@ void adbg_CheckWindowName(void)
 {
     BOOL found = FALSE;
     HANDLE hWindow = NULL;
-    const wchar_t* WindowNameOlly = L"OllyDbg - [CPU]";
-    const wchar_t* WindowNameImmunity = L"Immunity Debugger - [CPU]";
+    const wchar_t* WindowNameOlly = XorWideString(L"OllyDbg - [CPU]");
+    const wchar_t* WindowNameImmunity = XorWideString(L"Immunity Debugger - [CPU]");
     hWindow = FindWindow(NULL, WindowNameOlly);
     if (hWindow)
     {
@@ -286,19 +286,19 @@ void adbg_CheckWindowName(void)
     }
     if (found)
     {
-        DBG_MSG(DBG_FINDWINDOW, "Caught by FindWindow (WindowName)!");
+        DBG_MSG(DBG_FINDWINDOW, XorString("Caught by FindWindow (WindowName)!"));
         exit(DBG_FINDWINDOW);
     }
 }
 void adbg_ProcessFileName(void)
 {
     const wchar_t *debuggersFilename[6] = {
-        L"cheatengine-x86_64.exe", 
-        L"ollydbg.exe", 
-        L"ida.exe", 
-        L"ida64.exe", 
-        L"radare2.exe", 
-        L"x64dbg.exe"
+       XorWideString(L"cheatengine-x86_64.exe"),
+        XorWideString(L"ollydbg.exe"),
+        XorWideString(L"ida.exe"),
+        XorWideString(L"ida64.exe"),
+        XorWideString(L"radare2.exe"),
+       XorWideString(L"x64dbg.exe")
     };
 
     wchar_t* processName;
@@ -308,7 +308,7 @@ void adbg_ProcessFileName(void)
     processList = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
     processInformation = { sizeof(PROCESSENTRY32W) };
     if (!(Process32FirstW(processList, &processInformation)))
-        printf("[Warning] It is impossible to check process list.");
+        printf(XorString("[Warning] It is impossible to check process list."));
     else
     {
         do
@@ -317,7 +317,7 @@ void adbg_ProcessFileName(void)
             {
                 processName = processInformation.szExeFile;
                 if (_wcsicmp(debugger, processName) == 0) {
-                    DBG_MSG(DBG_PROCESSFILENAME, "Caught by ProcessFileName!");
+                    DBG_MSG(DBG_PROCESSFILENAME, XorString("Caught by ProcessFileName!"));
                     exit(DBG_PROCESSFILENAME);
                 }
             }
@@ -329,8 +329,8 @@ void adbg_CheckWindowClassName(void)
 {
     BOOL found = FALSE;
     HANDLE hWindow = NULL;
-    const wchar_t* WindowClassNameOlly = L"OLLYDBG";
-    const wchar_t* WindowClassNameImmunity = L"ID";
+    const wchar_t* WindowClassNameOlly = XorWideString(L"OLLYDBG");
+    const wchar_t* WindowClassNameImmunity = XorWideString(L"ID");
 
     hWindow = FindWindow(WindowClassNameOlly, NULL);
     if (hWindow)
@@ -346,7 +346,7 @@ void adbg_CheckWindowClassName(void)
 
     if (found)
     {
-        DBG_MSG(DBG_FINDWINDOW, "Caught by FindWindow (ClassName)!");
+        DBG_MSG(DBG_FINDWINDOW, XorString("Caught by FindWindow (ClassName)!"));
         exit(DBG_FINDWINDOW);
     }
 }
@@ -357,7 +357,7 @@ void adbg_IsDebuggerPresent(void)
 
     if (found)
     {
-        DBG_MSG(DBG_ISDEBUGGERPRESENT, "Caught by IsDebuggerPresent!");
+        DBG_MSG(DBG_ISDEBUGGERPRESENT, XorString("Caught by IsDebuggerPresent!"));
         exit(DBG_ISDEBUGGERPRESENT);
     }
 }
@@ -380,7 +380,7 @@ void adbg_NtGlobalFlagPEB(void)
 
     if (found)
     {
-        DBG_MSG(DBG_NTGLOBALFLAGPEB, "Caught by NtGlobalFlag PEB check!");
+        DBG_MSG(DBG_NTGLOBALFLAGPEB, XorString("Caught by NtGlobalFlag PEB check!"));
         exit(DBG_NTGLOBALFLAGPEB);
     }
 }
@@ -389,13 +389,13 @@ void adbg_NtQueryInformationProcess(void)
     HANDLE hProcess = INVALID_HANDLE_VALUE;
     PROCESS_BASIC_INFORMATION pProcBasicInfo = {0};
     ULONG returnLength = 0;
-    HMODULE hNtdll = LoadLibraryW(L"ntdll.dll");
+    HMODULE hNtdll = LoadLibraryW(XorWideString(L"ntdll.dll"));
     if (hNtdll == INVALID_HANDLE_VALUE || hNtdll == NULL)
     {
         return;
     }
     _NtQueryInformationProcess  NtQueryInformationProcess = NULL;
-    NtQueryInformationProcess = (_NtQueryInformationProcess)GetProcAddress(hNtdll, "NtQueryInformationProcess");
+    NtQueryInformationProcess = (_NtQueryInformationProcess)GetProcAddress(hNtdll, XorString("NtQueryInformationProcess"));
 
     if (NtQueryInformationProcess == NULL)
     {
@@ -411,7 +411,7 @@ void adbg_NtQueryInformationProcess(void)
         {
             if (pPeb->BeingDebugged)
             {
-                DBG_MSG(DBG_NTQUERYINFORMATIONPROCESS, "Caught by NtQueryInformationProcess (ProcessDebugPort)!");
+                DBG_MSG(DBG_NTQUERYINFORMATIONPROCESS, XorString("Caught by NtQueryInformationProcess (ProcessDebugPort)!"));
                 exit(DBG_NTQUERYINFORMATIONPROCESS);
             }
         }
@@ -420,13 +420,13 @@ void adbg_NtQueryInformationProcess(void)
 void adbg_NtSetInformationThread(void)
 {
     THREAD_INFORMATION_CLASS ThreadHideFromDebugger = (THREAD_INFORMATION_CLASS)0x11;
-    HMODULE hNtdll = LoadLibraryW(L"ntdll.dll");
+    HMODULE hNtdll = LoadLibraryW(XorWideString(L"ntdll.dll"));
     if (hNtdll == INVALID_HANDLE_VALUE || hNtdll == NULL)
     {
         return;
     }
     _NtSetInformationThread NtSetInformationThread = NULL;
-    NtSetInformationThread = (_NtSetInformationThread)GetProcAddress(hNtdll, "NtSetInformationThread");
+    NtSetInformationThread = (_NtSetInformationThread)GetProcAddress(hNtdll, XorString("NtSetInformationThread"));
 
     if (NtSetInformationThread == NULL)
     {
@@ -443,7 +443,7 @@ void adbg_DebugActiveProcess(const char* cpid)
     TCHAR szPath[MAX_PATH];
     DWORD exitCode = 0;
 
-    CreateMutex(NULL, FALSE, L"antidbg");
+    CreateMutex(NULL, FALSE, XorWideString(L"antidbg"));
     if (GetLastError() != ERROR_SUCCESS)
     {
         if (DebugActiveProcess((DWORD)atoi(cpid)))
@@ -459,7 +459,7 @@ void adbg_DebugActiveProcess(const char* cpid)
     GetModuleFileName(NULL, szPath, MAX_PATH);
 
     char cmdline[MAX_PATH + 1 + sizeof(int)];
-    snprintf(cmdline, sizeof(cmdline), "%ws %d", szPath, pid);
+    snprintf(cmdline, sizeof(cmdline), XorString("%ws %d"), szPath, pid);
     BOOL success = CreateProcessA(
         NULL,
         cmdline,
@@ -482,7 +482,7 @@ void adbg_DebugActiveProcess(const char* cpid)
 
     if (found)
     {
-        DBG_MSG(DBG_DEBUGACTIVEPROCESS, "Caught by DebugActiveProcess!");
+        DBG_MSG(DBG_DEBUGACTIVEPROCESS, XorString("Caught by DebugActiveProcess!"));
         exit(DBG_DEBUGACTIVEPROCESS);
     }
 }
@@ -545,7 +545,7 @@ void adbg_RDTSC(void)
 
     if (found)
     {
-        DBG_MSG(DBG_RDTSC, "Caught by RDTSC!");
+        DBG_MSG(DBG_RDTSC, XorString("Caught by RDTSC!"));
         exit(DBG_RDTSC);
     }
 }
@@ -580,7 +580,7 @@ void adbg_QueryPerformanceCounter(void)
 
     if (found)
     {
-        DBG_MSG(DBG_QUERYPERFORMANCECOUNTER, "Caught by QueryPerformanceCounter!");
+        DBG_MSG(DBG_QUERYPERFORMANCECOUNTER, XorString("Caught by QueryPerformanceCounter!"));
         exit(DBG_QUERYPERFORMANCECOUNTER);
     }
 }
@@ -614,7 +614,7 @@ void adbg_GetTickCount(void)
 
     if (found)
     {
-        DBG_MSG(DBG_GETTICKCOUNT, "Caught by GetTickCount!");
+        DBG_MSG(DBG_GETTICKCOUNT, XorString("Caught by GetTickCount!"));
         exit(DBG_GETTICKCOUNT);
     }
 }
@@ -635,7 +635,7 @@ void adbg_HardwareDebugRegisters(void)
 
     if (found)
     {
-        DBG_MSG(DBG_HARDWAREDEBUGREGISTERS, "Caught by a Hardware Debug Register Check!");
+        DBG_MSG(DBG_HARDWAREDEBUGREGISTERS, XorString("Caught by a Hardware Debug Register Check!"));
         exit(DBG_HARDWAREDEBUGREGISTERS);
     }
 }
@@ -662,7 +662,7 @@ void adbg_MovSS(void)
 
     if (found)
     {
-        DBG_MSG(DBG_MOVSS, "Caught by a MOV SS Single Step Check!");
+        DBG_MSG(DBG_MOVSS, XorString("Caught by a MOV SS Single Step Check!"));
         exit(DBG_MOVSS);
     }
 }
@@ -682,7 +682,7 @@ void adbg_CloseHandleException(void)
 
     if (found)
     {
-        DBG_MSG(DBG_CLOSEHANDLEEXCEPTION, "Caught by an CloseHandle exception!");
+        DBG_MSG(DBG_CLOSEHANDLEEXCEPTION, XorString("Caught by an CloseHandle exception!"));
         exit(DBG_CLOSEHANDLEEXCEPTION);
     }
 }
@@ -710,7 +710,7 @@ void adbg_SingleStepException(void)
 
     if (found)
     {
-        DBG_MSG(DBG_SINGLESTEPEXCEPTION, "Caught by a Single Step Exception!");
+        DBG_MSG(DBG_SINGLESTEPEXCEPTION, XorString("Caught by a Single Step Exception!"));
         exit(DBG_SINGLESTEPEXCEPTION);
     }
 }
@@ -737,7 +737,7 @@ void adbg_Int3(void)
 
     if (found)
     {
-        DBG_MSG(DBG_INT3CC, "Caught by a rogue INT 3!");
+        DBG_MSG(DBG_INT3CC, XorString("Caught by a rogue INT 3!"));
         exit(DBG_INT3CC);
     }
 }
@@ -766,7 +766,7 @@ void adbg_PrefixHop(void)
 
     if (found)
     {
-        DBG_MSG(DBG_PREFIXHOP, "Caught by a Prefix Hop!");
+        DBG_MSG(DBG_PREFIXHOP, XorString("Caught by a Prefix Hop!"));
         exit(DBG_PREFIXHOP);
     }
 }
@@ -794,7 +794,7 @@ void adbg_Int2D(void)
 
     if (found)
     {
-        DBG_MSG(DBG_NONE, "Caught by a rogue INT 2D!");
+        DBG_MSG(DBG_NONE, XorString("Caught by a rogue INT 2D!"));
         exit(DBG_NONE);
     }
 }

