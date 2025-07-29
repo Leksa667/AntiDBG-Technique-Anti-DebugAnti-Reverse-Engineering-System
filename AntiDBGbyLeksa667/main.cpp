@@ -6,6 +6,8 @@
 #include <shlobj.h>
 #include <shellapi.h>
 
+//UPDATE 28/07/2025 added one feature and encrypted strings
+
 // Define an array of alphanumeric characters for generating random strings
 static const char alphanum[] = "0123456789667" "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 int stringLengthh = sizeof(alphanum) - 1;
